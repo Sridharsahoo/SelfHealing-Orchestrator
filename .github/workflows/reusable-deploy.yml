@@ -1,4 +1,4 @@
-name : Reusable Deployment Engine
+name : ReusableDeploymentEngine
 
 on:
   workflow_call:
