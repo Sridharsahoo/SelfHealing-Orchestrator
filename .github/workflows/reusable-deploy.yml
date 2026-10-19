@@ -38,7 +38,7 @@ jobs:
 
       - name: Execute Deployment
         id: do_deploy
-        run: ./scripts/deploy.sh
+        run: ./scripts/deply.sh
 
       - name: Capture Deployment Outcome
         id: capture-state
