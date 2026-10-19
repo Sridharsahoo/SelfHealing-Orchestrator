@@ -1,4 +1,5 @@
-name : ReusableDeploymentEngine
+
+name: Reusable Deployment Workflow
 
 on:
   workflow_call:
@@ -6,11 +7,11 @@ on:
       target_env:
         required: true
         type: string
-        description: "Target environment runtime execution context"
+        description: "Target deployment environment"
 
     outputs:
       deployment_outcome:
-        description: "The explicit terminal state of the tracking step"
+        description: "Final deployment step outcome"
         value: ${{ jobs.deploy.outputs.step_result }}
 
 jobs:
@@ -21,21 +22,25 @@ jobs:
     outputs:
       step_result: ${{ steps.capture-state.outputs.result }}
 
-steps:
-  - name: Secure Cryptographic Checkout
-    uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f
 
-  - name: Initialize Deployment Script Assets
-    run: |
-      mkdir -p ./scripts
-      echo 'echo "Executing low-level system deployment sequence..."' > ./scripts/deploy.sh
-      chmod +x ./scripts/deploy.sh
+      - name: Initialize Deployment Script
+        run: |
+          mkdir -p ./scripts
+          cat > ./scripts/deploy.sh <<'EOF'
+          #!/bin/bash
+          set -e
+          echo "Executing deployment for the configured environment..."
+          EOF
+          chmod +x ./scripts/deploy.sh
 
-  - name: Execute Core Deployment Matrix Logic
-    id: do_deploy
-    run: ./scripts/deploy.sh
+      - name: Execute Deployment
+        id: do_deploy
+        run: ./scripts/deploy.sh
 
-  - name: Propagate Final Pipeline Output States
-    id: capture-state
-    if: always()
-    run: echo "result=${{ steps.do_deploy.outcome }}" >> $GITHUB_OUTPUT
+      - name: Capture Deployment Outcome
+        id: capture-state
+        if: always()
+        run: echo "result=${{ steps.do_deploy.outcome }}" >> "$GITHUB_OUTPUT"
